@@ -40,5 +40,7 @@ func main() {
 		accountBalance -= withdrawAmount
 
 		fmt.Printf("Balance updated! Now your current balance is: $%.2f", accountBalance)
+	} else if choice == 4 {
+		fmt.Println("Goodbye!")
 	}
 }
