@@ -1,61 +1,110 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"os"
+	"strconv"
+)
+
+const balanceFileName = "balance.txt"
+
+func writeBalanceToFile(balance float64) {
+	balanceText := fmt.Sprint(balance)
+	os.WriteFile(balanceFileName, []byte(balanceText), 0644)
+}
+
+func getBalanceFromFile() (float64, error) {
+	data, err := os.ReadFile(balanceFileName)
+
+	if err != nil {
+		return 1000, errors.New("Failed to read file.")
+	}
+
+	balanceText := string(data)
+	balance, err := strconv.ParseFloat(balanceText, 64)
+
+	if err != nil {
+		return 1000, errors.New("Failed to parse stored balance value.")
+	}
+
+	return balance, nil
+}
 
 func main() {
+	var accountBalance, err = getBalanceFromFile()
 
-	var accountBalance float64 = 1000
+	if err != nil {
+		fmt.Println("--------------")
+		fmt.Println("ERROR")
+		fmt.Println(err)
+		fmt.Println("--------------")
+		// panic(err)
+	}
 
 	fmt.Println("Welcome to Go Bank!")
-	fmt.Println("What do you want to do?")
 
-	fmt.Println("1. Check balance")
-	fmt.Println("2. Deposit money")
-	fmt.Println("3. Withdraw money")
-	fmt.Println("4. Exit")
+	for {
 
-	var choice int
-	fmt.Print("Your choice: ")
-	fmt.Scan(&choice)
+		fmt.Println("What do you want to do?")
+		fmt.Println("1. Check balance")
+		fmt.Println("2. Deposit money")
+		fmt.Println("3. Withdraw money")
+		fmt.Println("4. Exit")
 
-	if choice == 1 {
-		fmt.Printf("Your balance is: $%.2f", accountBalance)
-	} else if choice == 2 {
-		fmt.Println("What is the amount that you want to deposit?")
-		fmt.Print("Amount: ")
+		var choice int
+		fmt.Print("Your choice: ")
+		fmt.Scan(&choice)
 
-		var depositAmount float64
-		fmt.Scan(&depositAmount)
+		switch choice {
+		case 1:
+			fmt.Printf("Your balance is: $%.2f\n", accountBalance)
+		case 2:
+			fmt.Println("What is the amount that you want to deposit?")
+			fmt.Print("Amount: ")
 
-		if depositAmount <= 0 {
-			fmt.Println("Invalid amount. Must be greater than 0.")
+			var depositAmount float64
+			fmt.Scan(&depositAmount)
+
+			if depositAmount <= 0 {
+				fmt.Println("Invalid amount. Must be greater than 0.")
+				// return
+				continue
+			}
+
+			accountBalance += depositAmount
+
+			fmt.Printf("Balance updated! Now your current balance is: $%.2f", accountBalance)
+			writeBalanceToFile(accountBalance)
+		case 3:
+			fmt.Println("What is the amount that you want to withdraw?")
+			fmt.Print("Amount: ")
+
+			var withdrawAmount float64
+			fmt.Scan(&withdrawAmount)
+
+			if withdrawAmount <= 0 {
+				fmt.Println("Invalid amount. Must be greater than 0.")
+				continue
+			}
+
+			if withdrawAmount > accountBalance {
+				fmt.Println("Invalid amount. You can't withdraw more than you have.")
+				continue
+			}
+
+			accountBalance -= withdrawAmount
+
+			fmt.Printf("Balance updated! Now your current balance is: $%.2f", accountBalance)
+			writeBalanceToFile(accountBalance)
+		case 4:
+			fmt.Println("Goodbye!")
 			return
+		default:
+			fmt.Println("Invalid choice. Please try again")
+			continue
 		}
 
-		accountBalance += depositAmount
-
-		fmt.Printf("Balance updated! Now your current balance is: $%.2f", accountBalance)
-	} else if choice == 3 {
-		fmt.Println("What is the amount that you want to withdraw?")
-		fmt.Print("Amount: ")
-
-		var withdrawAmount float64
-		fmt.Scan(&withdrawAmount)
-
-		if withdrawAmount <= 0 {
-			fmt.Println("Invalid amount. Must be greater than 0.")
-			return
-		}
-
-		if withdrawAmount > accountBalance {
-			fmt.Println("Invalid amount. You can't withdraw more than you have.")
-			return
-		}
-
-		accountBalance -= withdrawAmount
-
-		fmt.Printf("Balance updated! Now your current balance is: $%.2f", accountBalance)
-	} else if choice == 4 {
-		fmt.Println("Goodbye!")
 	}
+
 }
